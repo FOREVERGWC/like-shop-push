@@ -1,0 +1,91 @@
+server:
+  port: 9090
+  servlet:
+    context-path: /
+  compression:
+    enabled: true
+    mime-types: application/javascript,text/css,application/json,application/xml,text/html,text/xml,text/plain
+
+spring:
+  application:
+    name: like-shop-push
+  profiles:
+    active: @profiles.active@
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    type: com.alibaba.druid.pool.DruidDataSource
+  data:
+    redis:
+      timeout: 10s
+      lettuce:
+        pool:
+          max-active: 8
+          max-wait: -1
+          max-idle: 8
+          min-idle: 0
+  cache:
+    type: redis
+    redis:
+      time-to-live: 3600000
+      cache-null-values: true
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+  messages:
+    basename: i18n/messages
+    encoding: UTF-8
+  main:
+    banner-mode: off
+  mvc:
+    static-path-pattern: /static/**
+  web:
+    resources:
+      static-locations: file:${upload.path}
+  devtools:
+    restart:
+      enabled: true
+      additional-paths: src/main/java
+      exclude: WEB-INF/**
+
+logging:
+  pattern:
+    dateformat: "yyyy-MM-dd HH:mm:ss.SSS"
+  level:
+    com:
+      baomidou:
+        mybatisplus: DEBUG
+    org:
+      example:
+        springboot:
+          mapper: DEBUG
+  file:
+    name: ../logs/${spring.application.name}.log
+  logback:
+    rollingpolicy:
+      max-file-size: 500KB
+      file-name-pattern: ../logs/${spring.application.name}.%d.%i.log
+
+mybatis-plus:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: org.example.likeshoppush.domain.entity
+  configuration:
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+    map-underscore-to-camel-case: true
+    default-enum-type-handler: com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler
+  global-config:
+    db-config:
+      id-type: auto
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+    banner: off
+
+knife4j:
+  openapi:
+    group:
+      system:
+        group-name: 系统模块
+        api-rule: package
+        api-rule-resources:
+          - org.example.likeshoppush.controller
