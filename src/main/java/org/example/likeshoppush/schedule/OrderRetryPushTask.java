@@ -17,7 +17,7 @@ public class OrderRetryPushTask {
     @Resource
     private ILsOrderPushService lsOrderPushService;
 
-    @Scheduled(fixedRate = 300000)
+    @Scheduled(fixedRate = 10000)
     public void retryFailedPushes() {
         log.info("定时任务【推送重试】开始执行");
         List<Integer> failedOrderIds = lsOrderPushService.lambdaQuery()
@@ -32,6 +32,6 @@ public class OrderRetryPushTask {
             return;
         }
         lsOrderPushService.pushOrderList(failedOrderIds);
-        log.info("定时任务【推送重试】开始执行");
+        log.info("定时任务【推送重试】执行完毕");
     }
 }

@@ -10,6 +10,7 @@ import org.example.likeshoppush.service.*;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -21,11 +22,11 @@ public class OrderPushTask {
     @Resource
     private ILsOrderPushService lsOrderPushService;
 
-    @Scheduled(fixedRate = 300000)
+    @Scheduled(fixedRate = 10000)
     public void pushOrders() {
         log.info("定时任务【订单推送】开始执行");
         List<Integer> orderIdList = lsOrderService.lambdaQuery()
-                .eq(LsOrder::getOrderStatus, OrderStatus.ON_SENDING)
+                .in(LsOrder::getOrderStatus, Arrays.asList(OrderStatus.ON_SENDING, OrderStatus.HAS_FINISHED))
                 .select(LsOrder::getId)
                 .list()
                 .stream()
