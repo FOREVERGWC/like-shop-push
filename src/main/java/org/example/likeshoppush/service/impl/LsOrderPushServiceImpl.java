@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -47,9 +48,8 @@ public class LsOrderPushServiceImpl extends ServiceImpl<LsOrderPushMapper, LsOrd
                 .in(LsOrder::getId, orderIds)
                 .list();
         // 订单商品
-        List<Integer> idList = list.stream().map(LsOrder::getId).toList();
         List<LsOrderGoods> orderGoodsList = lsOrderGoodsService.lambdaQuery()
-                .in(LsOrderGoods::getOrderId, idList)
+                .in(LsOrderGoods::getOrderId, orderIds)
                 .list();
         Map<Integer, List<LsOrderGoods>> orderGoodsMap = orderGoodsList.stream().collect(Collectors.groupingBy(LsOrderGoods::getOrderId));
         // 下单用户
@@ -95,7 +95,7 @@ public class LsOrderPushServiceImpl extends ServiceImpl<LsOrderPushMapper, LsOrd
                             .build());
             try {
                 ResponseEntity<WxUploadShippingResponseDto> response = wxApiService.uploadShippingInfo(token, dto);
-                boolean isSuccess = response.getStatusCode().is2xxSuccessful() && response.getBody() != null && response.getBody().getErrcode() == 0L;
+                boolean isSuccess = response.getStatusCode().is2xxSuccessful() && response.getBody() != null && Objects.equals(response.getBody().getErrcode(), 0L);
                 String remark = JSONUtil.toJsonStr(response.getBody());
 
                 orderPush.setIsSuccess(isSuccess)
