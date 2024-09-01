@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 import lombok.experimental.Accessors;
 import org.example.likeshoppush.common.enums.OrderStatus;
+import org.example.likeshoppush.common.enums.OrderType;
 import org.example.likeshoppush.common.enums.PayStatus;
 
 import java.io.Serializable;
@@ -60,6 +61,11 @@ public class LsOrder implements Serializable {
     @Schema(description = "订单状态")
     private OrderStatus orderStatus;
     /**
+     * 订单类型
+     */
+    @Schema(description = "订单类型")
+    private OrderType orderType;
+    /**
      * 收货人
      */
     @Schema(description = "收货人")
@@ -74,4 +80,14 @@ public class LsOrder implements Serializable {
      */
     @Schema(description = "地址快照")
     private String addressSnap;
+    /**
+     * 更新时间
+     */
+    @Schema(description = "更新时间")
+    private Integer updateTime;
+    /**
+     * 删除标识
+     */
+    @Schema(description = "删除标识")
+    private Boolean del;
 }

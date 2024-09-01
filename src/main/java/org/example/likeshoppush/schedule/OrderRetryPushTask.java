@@ -21,8 +21,9 @@ public class OrderRetryPushTask {
     public void retryFailedPushes() {
         log.info("定时任务【推送重试】开始执行");
         List<Integer> failedOrderIds = lsOrderPushService.lambdaQuery()
-                .eq(LsOrderPush::getIsSuccess, false)
                 .select(LsOrderPush::getOrderId)
+                .eq(LsOrderPush::getIsSuccess, false)
+                .lt(LsOrderPush::getCount, 3)
                 .list()
                 .stream()
                 .map(LsOrderPush::getOrderId)

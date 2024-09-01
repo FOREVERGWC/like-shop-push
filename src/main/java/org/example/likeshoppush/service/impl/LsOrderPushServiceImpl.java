@@ -7,6 +7,7 @@ import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.example.likeshoppush.common.constant.Common;
 import org.example.likeshoppush.common.enums.Client;
+import org.example.likeshoppush.common.enums.OrderType;
 import org.example.likeshoppush.domain.dto.*;
 import org.example.likeshoppush.domain.entity.LsOrder;
 import org.example.likeshoppush.domain.entity.LsOrderGoods;
@@ -14,6 +15,7 @@ import org.example.likeshoppush.domain.entity.LsOrderPush;
 import org.example.likeshoppush.domain.entity.LsUserAuth;
 import org.example.likeshoppush.mapper.LsOrderPushMapper;
 import org.example.likeshoppush.service.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -39,6 +41,9 @@ public class LsOrderPushServiceImpl extends ServiceImpl<LsOrderPushMapper, LsOrd
     private ILsUserAuthService lsUserAuthService;
     @Resource
     private IWxApiService wxApiService;
+
+    @Value("${wechat.mchid}")
+    private String mchId;
 
     @Override
     public void pushOrderList(List<Integer> orderIds) {
@@ -70,10 +75,10 @@ public class LsOrderPushServiceImpl extends ServiceImpl<LsOrderPushMapper, LsOrd
                     .order_key(WxOrderKeyDto.builder()
                             .order_number_type(Common.ORDER_NUMBER_TYPE_WECHAT)
                             .transaction_id(item.getTransactionId())
-                            .mchid("") // TODO 获取商家号
-                            .out_trade_no(item.getOrderSn())
+                            .mchid(mchId)
+                            .out_trade_no(item.getOrderSn() + "JSAPI1")
                             .build())
-                    .logistics_type(Common.LOGISTICS_TYPE_TCPS)
+                    .logistics_type(item.getOrderType() == OrderType.IN_STORE_ORDER ? Common.LOGISTICS_TYPE_YHZT : Common.LOGISTICS_TYPE_TCPS)
                     .delivery_mode(Common.DELIVERY_MODE_UNIFIED_DELIVERY)
                     .is_all_delivered(true)
                     .shipping_list(List.of(WxShippingDto.builder()
@@ -90,19 +95,25 @@ public class LsOrderPushServiceImpl extends ServiceImpl<LsOrderPushMapper, LsOrd
                             .one())
                     .orElse(LsOrderPush.builder()
                             .orderId(item.getId())
+                            .orderSn(item.getOrderSn())
                             .isSuccess(false)
+                            .count(0)
                             .remark("")
                             .build());
+            String remark = JSONUtil.toJsonStr(dto) + "===";
             try {
                 ResponseEntity<WxUploadShippingResponseDto> response = wxApiService.uploadShippingInfo(token, dto);
                 boolean isSuccess = response.getStatusCode().is2xxSuccessful() && response.getBody() != null && Objects.equals(response.getBody().getErrcode(), 0L);
-                String remark = JSONUtil.toJsonStr(response.getBody());
+                remark += JSONUtil.toJsonStr(response.getBody());
 
                 orderPush.setIsSuccess(isSuccess)
+                        .setCount((isSuccess || orderPush.getId() == null) ? 0 : orderPush.getCount() + 1)
                         .setRemark(remark);
             } catch (Exception e) {
+                remark += JSONUtil.toJsonStr(e.getMessage());
                 orderPush.setIsSuccess(false)
-                        .setRemark(e.getMessage());
+                        .setCount(orderPush.getId() == null ? 0 : orderPush.getCount() + 1)
+                        .setRemark(remark);
             }
             saveOrUpdate(orderPush);
             log.info("订单{}推送{}：{}", item.getId(), orderPush.getIsSuccess() ? "成功" : "失败", orderPush);

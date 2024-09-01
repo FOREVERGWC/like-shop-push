@@ -36,10 +36,20 @@ public class LsOrderPush implements Serializable {
     @Schema(description = "订单ID")
     private Integer orderId;
     /**
+     * 订单编号
+     */
+    @Schema(description = "订单编号")
+    private String orderSn;
+    /**
      * 推送成功
      */
     @Schema(description = "推送成功")
     private Boolean isSuccess;
+    /**
+     * 重试次数
+     */
+    @Schema(description = "重试次数")
+    private Integer count;
     /**
      * 创建时间
      */
