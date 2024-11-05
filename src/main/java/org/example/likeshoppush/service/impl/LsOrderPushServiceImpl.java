@@ -97,6 +97,7 @@ public class LsOrderPushServiceImpl extends ServiceImpl<LsOrderPushMapper, LsOrd
                             .orderId(item.getId())
                             .orderSn(item.getOrderSn())
                             .isSuccess(false)
+                            .type(0)
                             .count(0)
                             .remark("")
                             .build());
@@ -164,6 +165,7 @@ public class LsOrderPushServiceImpl extends ServiceImpl<LsOrderPushMapper, LsOrd
                             .orderId(item.getId())
                             .orderSn(item.getOrderSn())
                             .isSuccess(false)
+                            .type(1)
                             .count(0)
                             .remark("")
                             .build());

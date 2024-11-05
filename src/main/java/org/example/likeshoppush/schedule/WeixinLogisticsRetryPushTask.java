@@ -26,10 +26,10 @@ public class WeixinLogisticsRetryPushTask {
                 .list();
         List<Integer> orders = lsOrderPushes.stream().filter(e -> e.getType() == 0).map(LsOrderPush::getOrderId).distinct().toList();
         List<Integer> rechargeOrders = lsOrderPushes.stream().filter(e -> e.getType() == 1).map(LsOrderPush::getOrderId).distinct().toList();
-        if (CollectionUtil.isEmpty(orders)) {
+        if (CollectionUtil.isNotEmpty(orders)) {
             lsOrderPushService.pushOrderList(orders);
         }
-        if (CollectionUtil.isEmpty(rechargeOrders)) {
+        if (CollectionUtil.isNotEmpty(rechargeOrders)) {
             lsOrderPushService.pushRechargeOrderList(rechargeOrders);
         }
         log.info("定时任务【推送重试】执行完毕");

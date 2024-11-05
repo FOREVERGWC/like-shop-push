@@ -82,21 +82,22 @@ public class WeixinLogisticsPushTask {
                 .stream()
                 .map(LsRechargeOrder::getId)
                 .toList();
-
-        List<Integer> pushedRechargeOrderIds = lsOrderPushService.lambdaQuery()
-                .eq(LsOrderPush::getIsSuccess, true)
-                .eq(LsOrderPush::getType, 1)
-                .in(LsOrderPush::getOrderId, orderIdList)
-                .select(LsOrderPush::getOrderId)
-                .list()
-                .stream()
-                .map(LsOrderPush::getOrderId)
-                .toList();
-        List<Integer> rechargeIdsToPush = rechargeIdList.stream()
-                .filter(orderId -> !pushedRechargeOrderIds.contains(orderId))
-                .toList();
-        if (CollectionUtil.isNotEmpty(rechargeIdsToPush)) {
-            lsOrderPushService.pushRechargeOrderList(rechargeIdsToPush);
+        if (CollectionUtil.isNotEmpty(rechargeIdList)) {
+            List<Integer> pushedRechargeOrderIds = lsOrderPushService.lambdaQuery()
+                    .eq(LsOrderPush::getIsSuccess, true)
+                    .eq(LsOrderPush::getType, 1)
+                    .in(LsOrderPush::getOrderId, rechargeIdList)
+                    .select(LsOrderPush::getOrderId)
+                    .list()
+                    .stream()
+                    .map(LsOrderPush::getOrderId)
+                    .toList();
+            List<Integer> rechargeIdsToPush = rechargeIdList.stream()
+                    .filter(orderId -> !pushedRechargeOrderIds.contains(orderId))
+                    .toList();
+            if (CollectionUtil.isNotEmpty(rechargeIdsToPush)) {
+                lsOrderPushService.pushRechargeOrderList(rechargeIdsToPush);
+            }
         }
         log.info("定时任务【订单推送】执行完毕");
     }

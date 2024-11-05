@@ -8,6 +8,7 @@ import lombok.experimental.Accessors;
 import org.example.likeshoppush.common.enums.PayStatus;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 /**
  * <p>
@@ -57,7 +58,7 @@ public class LsRechargeOrder implements Serializable {
      * 支付时间
      */
     @Schema(description = "更新时间")
-    private Integer payTime;
+    private Long payTime;
     /**
      * 用户ID
      */
@@ -72,15 +73,15 @@ public class LsRechargeOrder implements Serializable {
      * 充值金额
      */
     @Schema(description = "充值金额")
-    private Double orderAmount;
+    private BigDecimal orderAmount;
     /**
      * 赠送金额
      */
     @Schema(description = "赠送金额")
-    private Double giveAmount;
+    private BigDecimal giveMoney;
     /**
      * 更新时间
      */
     @Schema(description = "创建时间")
-    private Integer createTime;
+    private Long createTime;
 }
