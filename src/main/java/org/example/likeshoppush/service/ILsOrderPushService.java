@@ -17,4 +17,10 @@ public interface ILsOrderPushService extends IService<LsOrderPush> {
      * @param orderIds 订单ID列表
      */
     void pushOrderList(List<Integer> orderIds);
+    /**
+     * 推送充值订单到微信
+     *
+     * @param orderIds 订单ID列表
+     */
+    void pushRechargeOrderList(List<Integer> orderIds);
 }
