@@ -56,6 +56,11 @@ public class LsOrder implements Serializable {
     @Schema(description = "支付状态")
     private PayStatus payStatus;
     /**
+     * 支付方式
+     */
+    @Schema(description = "支付方式 1 微信支付 2 余额支付")
+    private Integer payWay;
+    /**
      * 订单状态
      */
     @Schema(description = "订单状态")

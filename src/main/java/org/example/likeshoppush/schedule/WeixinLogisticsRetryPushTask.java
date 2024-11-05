@@ -9,30 +9,29 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Component
-public class OrderRetryPushTask {
+public class WeixinLogisticsRetryPushTask {
     @Resource
     private ILsOrderPushService lsOrderPushService;
 
     @Scheduled(fixedRate = 10000)
     public void retryFailedPushes() {
         log.info("定时任务【推送重试】开始执行");
-        List<Integer> failedOrderIds = lsOrderPushService.lambdaQuery()
+        List<LsOrderPush> lsOrderPushes = lsOrderPushService.lambdaQuery()
                 .select(LsOrderPush::getOrderId)
                 .eq(LsOrderPush::getIsSuccess, false)
                 .lt(LsOrderPush::getCount, 3)
-                .list()
-                .stream()
-                .map(LsOrderPush::getOrderId)
-                .distinct()
-                .collect(Collectors.toList());
-        if (CollectionUtil.isEmpty(failedOrderIds)) {
-            return;
+                .list();
+        List<Integer> orders = lsOrderPushes.stream().filter(e -> e.getType() == 0).map(LsOrderPush::getOrderId).distinct().toList();
+        List<Integer> rechargeOrders = lsOrderPushes.stream().filter(e -> e.getType() == 1).map(LsOrderPush::getOrderId).distinct().toList();
+        if (CollectionUtil.isEmpty(orders)) {
+            lsOrderPushService.pushOrderList(orders);
         }
-        lsOrderPushService.pushOrderList(failedOrderIds);
+        if (CollectionUtil.isEmpty(rechargeOrders)) {
+            lsOrderPushService.pushRechargeOrderList(rechargeOrders);
+        }
         log.info("定时任务【推送重试】执行完毕");
     }
 }
