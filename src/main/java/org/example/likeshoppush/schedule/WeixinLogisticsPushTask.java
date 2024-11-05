@@ -30,7 +30,7 @@ public class WeixinLogisticsPushTask {
 
     private final String key = "last_execution_time";
 
-    @Scheduled(fixedRate = 60000)
+   @Scheduled(fixedRate = 60000)
     public void execute() {
         long currentTimeSeconds = System.currentTimeMillis() / 1000;
 
@@ -44,7 +44,6 @@ public class WeixinLogisticsPushTask {
             lastExecutionTimeSeconds = currentTimeSeconds - 1;
         }
 
-        redisTemplate.opsForValue().set(key, currentTimeSeconds);
         log.info("定时任务【订单推送】开始执行");
         List<Integer> orderIdList = lsOrderService.lambdaQuery()
                 .select(LsOrder::getId)
@@ -99,6 +98,7 @@ public class WeixinLogisticsPushTask {
                 lsOrderPushService.pushRechargeOrderList(rechargeIdsToPush);
             }
         }
+        redisTemplate.opsForValue().set(key, currentTimeSeconds);
         log.info("定时任务【订单推送】执行完毕");
     }
 }

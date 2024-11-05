@@ -86,6 +86,11 @@ public class LsOrder implements Serializable {
     @Schema(description = "地址快照")
     private String addressSnap;
     /**
+     * 用户备注
+     */
+    @Schema(description = "用户备注")
+    private String userRemark;
+    /**
      * 更新时间
      */
     @Schema(description = "更新时间")

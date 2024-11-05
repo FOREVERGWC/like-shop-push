@@ -16,7 +16,7 @@ public class WeixinLogisticsRetryPushTask {
     @Resource
     private ILsOrderPushService lsOrderPushService;
 
-    @Scheduled(fixedRate = 10000)
+   @Scheduled(fixedRate = 10000)
     public void retryFailedPushes() {
         log.info("定时任务【推送重试】开始执行");
         List<LsOrderPush> lsOrderPushes = lsOrderPushService.lambdaQuery()
