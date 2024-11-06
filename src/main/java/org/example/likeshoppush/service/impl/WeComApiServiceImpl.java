@@ -2,7 +2,11 @@ package org.example.likeshoppush.service.impl;
 
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
 import jakarta.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
 import org.example.likeshoppush.common.exception.AccessTokenInvalid;
 import org.example.likeshoppush.domain.dto.*;
 import org.example.likeshoppush.domain.entity.LsOrder;
@@ -20,12 +24,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class WeComApiServiceImpl implements IWecomApiService {
     @Resource
@@ -87,21 +91,21 @@ public class WeComApiServiceImpl implements IWecomApiService {
         }
     }
 
-    private String buildTemplate(String toparty, String dateTime, String orderType, String orderSn, String consignee, String phone, String itemDesc, String remark) {
+    private String buildTemplate(String toparty, String dateTime, String orderType, String orderSn, String consignee, String phone, String itemDesc, String location, String remark) {
         return String.format("{" +
                 "    \"toparty\": \"%s\"," +
                 "    \"msgtype\": \"textcard\"," +
                 "    \"agentid\": %s," +
                 "    \"textcard\": {" +
                 "        \"title\": \"下单通知\"," +
-                "        \"description\": \"<div class=\\\"gray\\\">%s</div><div class=\\\"normal\\\">订单类型：%s</div><div class=\\\"normal\\\">订单编号：%s</div><div class=\\\"normal\\\">收货人：%s</div><div class=\\\"normal\\\">手机号：%s</div><div class=\\\"highlight\\\">%s</div><div class=\\\"normal\\\">备注：%s</div>\"," +
+                "        \"description\": \"<div class=\\\"gray\\\">%s</div><div class=\\\"normal\\\">订单类型：%s</div><div class=\\\"normal\\\">订单编号：%s</div><div class=\\\"normal\\\">收货人：%s</div><div class=\\\"normal\\\">手机号：%s</div><div class=\\\"normal\\\">地址：%s</div><div class=\\\"highlight\\\">%s</div><div class=\\\"normal\\\">备注：%s</div>\"," +
                 "        \"url\": \"https://puppy-snack.suxitech.cn/shop/index/index.html\"," +
                 "        \"btntxt\": \"更多\"" +
                 "    }," +
                 "    \"enable_id_trans\": 0," +
                 "    \"enable_duplicate_check\": 0," +
                 "    \"duplicate_check_interval\": 1800" +
-                "}", toparty, agentid, dateTime, orderType, orderSn, consignee, phone, itemDesc, remark);
+                "}", toparty, agentid, dateTime, orderType, orderSn, consignee, phone, itemDesc, location, remark);
     }
 
     @Override
@@ -124,17 +128,27 @@ public class WeComApiServiceImpl implements IWecomApiService {
             }
             List<LsOrderGoods> itemOrderGoodsList = orderGoodsMap.getOrDefault(e.getId(), List.of());
             String itemDesc = itemOrderGoodsList.stream().map(i -> i.getGoodsName() + "*" + i.getGoodsNum()).collect(Collectors.joining("\n"));
+            String location = "";
+            if (StrUtil.isNotBlank(e.getAddressSnap()) && !StrUtil.equals(e.getAddressSnap(), "[]")) {
+                JSONObject entries = JSONUtil.parseObj(e.getAddressSnap());
+                location += entries.isNull("location") ? "" : entries.get("location").toString();
+                location += entries.isNull("address") ? "" : entries.get("address").toString();
+            }
             String requestBody = buildTemplate(departmentIds.get(shop.getShopSn().toString()),
                     DateUtil.formatDateTime(DateUtil.date(e.getUpdateTime().longValue() * 1000)),
                     e.getOrderType().getMsg(),
                     e.getOrderSn(),
                     e.getConsignee(),
-                    e.getMobile(), itemDesc,
+                    e.getMobile(),
+                    location,
+                    itemDesc,
                     e.getUserRemark()
             );
             HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
             try {
-                restTemplate.exchange(url, HttpMethod.POST, request, WecomNotifyResponseDto.class);
+                ResponseEntity<WecomNotifyResponseDto> res = restTemplate.exchange(url, HttpMethod.POST, request, WecomNotifyResponseDto.class);
+                String errmsg = res.getBody() != null ? res.getBody().getErrmsg() : "";
+                log.info("order:{} response: {}", e.getOrderSn(), errmsg);
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
